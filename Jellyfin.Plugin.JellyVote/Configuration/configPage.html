@@ -5,6 +5,49 @@
 </head>
 <body>
 <div id="JellyVotePage" data-role="page" class="page type-interior pluginConfigurationPage jellyVoteConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
+    <script>
+        (function () {
+            // Leading slash is required: without it ApiClient resolves under /web/ and CSS 404s.
+            function cssUrl() {
+                return ApiClient.getUrl('/JellyVote/Configuration/configPage.css');
+            }
+
+            function injectCssText(css) {
+                if (!css || document.getElementById('jellyvote-inline-css')) return;
+                var style = document.createElement('style');
+                style.id = 'jellyvote-inline-css';
+                style.setAttribute('data-jellyvote-css', '1');
+                style.textContent = css;
+                document.head.appendChild(style);
+            }
+
+            function loadJellyVoteCss() {
+                if (document.getElementById('jellyvote-inline-css')) return;
+                var url = cssUrl();
+                var token = null;
+                try { token = ApiClient.accessToken && ApiClient.accessToken(); } catch (e) { /* ignore */ }
+
+                // Prefer fetch+token: plain <link> requests do not send X-Emby-Token.
+                fetch(url, {
+                    headers: token ? { 'X-Emby-Token': token } : {},
+                    credentials: 'same-origin'
+                }).then(function (res) {
+                    if (!res.ok) throw new Error('css ' + res.status);
+                    return res.text();
+                }).then(injectCssText).catch(function () {
+                    if (document.querySelector('link[data-jellyvote-css]')) return;
+                    var link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = url + '?v=' + Date.now();
+                    link.setAttribute('data-jellyvote-css', '1');
+                    document.head.appendChild(link);
+                });
+            }
+
+            window.__jellyVoteEnsureCss = loadJellyVoteCss;
+            loadJellyVoteCss();
+        })();
+    </script>
     <div data-role="content" class="content-primary">
         <div class="jv-sticky-header">
             <div class="jv-title-row">
@@ -212,13 +255,9 @@
     var textIds = ['DeleteReasons', 'KeepReasons', 'ExcludedUserIds'];
 
     function loadCss() {
-        var href = ApiClient.getUrl('JellyVote/Configuration/configPage.css') + '?v=' + Date.now();
-        if (document.querySelector('link[data-jellyvote-css]')) return;
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        link.setAttribute('data-jellyvote-css', '1');
-        document.head.appendChild(link);
+        if (typeof window.__jellyVoteEnsureCss === 'function') {
+            window.__jellyVoteEnsureCss();
+        }
     }
 
     function detectTheme() {

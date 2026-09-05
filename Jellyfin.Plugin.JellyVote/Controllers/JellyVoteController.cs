@@ -62,6 +62,7 @@ namespace Jellyfin.Plugin.JellyVote.Controllers
         }
 
         [HttpGet("Configuration/configPage.css")]
+        [HttpGet("Configuration/css")]
         [AllowAnonymous]
         public ActionResult GetCss()
         {
@@ -80,7 +81,7 @@ namespace Jellyfin.Plugin.JellyVote.Controllers
             }
 
             using var reader = new StreamReader(stream);
-            return Content(reader.ReadToEnd(), "text/css");
+            return Content(reader.ReadToEnd(), "text/css; charset=utf-8");
         }
 
         [HttpGet("public-config")]
