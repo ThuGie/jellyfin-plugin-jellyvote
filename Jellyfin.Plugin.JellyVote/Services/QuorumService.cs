@@ -4,6 +4,7 @@ using System.Linq;
 using Jellyfin.Data;
 using Jellyfin.Database.Implementations.Enums;
 using Jellyfin.Plugin.JellyVote.Configuration;
+using Jellyfin.Plugin.JellyVote.Helpers;
 using Jellyfin.Plugin.JellyVote.Models;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -99,7 +100,7 @@ namespace Jellyfin.Plugin.JellyVote.Services
             var includeInactive = forNotify ? cfg.IncludeInactiveInNotify : cfg.IncludeInactiveInPool;
             var excluded = cfg.GetExcludedUserIdSet();
 
-            return _userManager.Users
+            return UserManagerCompat.GetUsers(_userManager)
                 .Where(u => !excluded.Contains(u.Id))
                 .Where(u => CanVote(u))
                 .Where(u => includeInactive || IsUserActive(u))
