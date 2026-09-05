@@ -1,9 +1,9 @@
-﻿[
+[
   {
     "guid": "d2cffc5c-a675-431a-add8-abb93d6aaf1f",
     "name": "JellyVote",
     "description": "Community voting to delete movies, series, and music from your Jellyfin library.",
-    "overview": "Vote before media is removed â€” adaptive quorum, preset reasons, and safe deletion defaults.",
+    "overview": "Vote before media is removed — adaptive quorum, preset reasons, and safe deletion defaults.",
     "owner": "ThuGie",
     "category": "General",
     "imageUrl": "",
@@ -19,4 +19,3 @@
     ]
   }
 ]
-
