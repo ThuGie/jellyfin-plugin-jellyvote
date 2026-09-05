@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.JellyVote.Helpers;
 using Jellyfin.Plugin.JellyVote.Models;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
@@ -189,7 +190,7 @@ namespace Jellyfin.Plugin.JellyVote.Services
 
                 if (cfg.AlwaysNotifyAdmins)
                 {
-                    foreach (var admin in _userManager.Users.Where(_quorum.IsAdmin))
+                    foreach (var admin in UserManagerCompat.GetUsers(_userManager).Where(_quorum.IsAdmin))
                     {
                         if (!notifyUsers.Contains(admin.Id) && admin.Id != user.Id)
                         {
@@ -311,7 +312,7 @@ namespace Jellyfin.Plugin.JellyVote.Services
             {
                 var targets = new[] { updated.ProposerUserId }.Concat(
                     cfg.AlwaysNotifyAdmins
-                        ? _userManager.Users.Where(_quorum.IsAdmin).Select(a => a.Id)
+                        ? UserManagerCompat.GetUsers(_userManager).Where(_quorum.IsAdmin).Select(a => a.Id)
                         : Array.Empty<Guid>()).Distinct().Where(id => id != user.Id);
 
                 await _notifications.NotifyUsersAsync(
@@ -551,7 +552,7 @@ namespace Jellyfin.Plugin.JellyVote.Services
 
                 if (cfg.AlwaysNotifyAdmins)
                 {
-                    var admins = _userManager.Users.Where(_quorum.IsAdmin).Select(a => a.Id);
+                    var admins = UserManagerCompat.GetUsers(_userManager).Where(_quorum.IsAdmin).Select(a => a.Id);
                     await _notifications.NotifyUsersAsync(
                         admins,
                         voteId,
