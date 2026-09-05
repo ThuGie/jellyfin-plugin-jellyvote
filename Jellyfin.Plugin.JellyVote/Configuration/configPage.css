@@ -1,0 +1,239 @@
+/* JellyVote config page — Enhanced-inspired multi-tab layout */
+
+#JellyVotePage {
+  --jv-surface-1: rgba(255, 255, 255, 0.03);
+  --jv-surface-2: rgba(255, 255, 255, 0.05);
+  --jv-surface-3: rgba(255, 255, 255, 0.08);
+  --jv-border: rgba(255, 255, 255, 0.08);
+  --jv-border-strong: rgba(255, 255, 255, 0.12);
+  --jv-text-strong: rgba(255, 255, 255, 0.9);
+  --jv-text-muted: rgba(255, 255, 255, 0.6);
+  --jv-text-subtle: rgba(255, 255, 255, 0.45);
+  --jv-accent: var(--primary-accent-color, #00a4dc);
+  --jv-accent-tint: color-mix(in srgb, var(--jv-accent) 18%, transparent);
+  --jv-legend: linear-gradient(to left, color-mix(in srgb, var(--jv-accent) 22%, transparent) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --jv-card: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 96px;
+}
+
+#JellyVotePage.jv-light-theme {
+  --jv-surface-1: rgba(0, 0, 0, 0.03);
+  --jv-surface-2: rgba(0, 0, 0, 0.05);
+  --jv-surface-3: rgba(0, 0, 0, 0.08);
+  --jv-border: rgba(0, 0, 0, 0.1);
+  --jv-border-strong: rgba(0, 0, 0, 0.15);
+  --jv-text-strong: rgba(0, 0, 0, 0.9);
+  --jv-text-muted: rgba(0, 0, 0, 0.65);
+  --jv-text-subtle: rgba(0, 0, 0, 0.5);
+  --jv-legend: linear-gradient(to left, color-mix(in srgb, var(--jv-accent) 18%, transparent) 0%, rgba(0, 0, 0, 0.01) 100%);
+  --jv-card: linear-gradient(145deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.01) 100%);
+}
+
+#JellyVotePage .jv-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--background-color, #101010) 82%, transparent);
+  padding: 0.75rem 0 0.35rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--jv-border);
+}
+
+#JellyVotePage .jv-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.65rem;
+}
+
+#JellyVotePage .jv-title-row h1 {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 650;
+  color: var(--jv-text-strong);
+}
+
+#JellyVotePage .jv-subtitle {
+  color: var(--jv-text-muted);
+  font-size: 0.92rem;
+}
+
+#JellyVotePage .jv-tab-bar {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  scrollbar-width: thin;
+}
+
+#JellyVotePage .jv-tab-button {
+  border: 1px solid var(--jv-border);
+  background: var(--jv-surface-1);
+  color: var(--jv-text-muted);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#JellyVotePage .jv-tab-button:hover {
+  background: var(--jv-surface-2);
+  color: var(--jv-text-strong);
+}
+
+#JellyVotePage .jv-tab-button.active {
+  background: var(--jv-accent-tint);
+  border-color: color-mix(in srgb, var(--jv-accent) 45%, transparent);
+  color: var(--jv-text-strong);
+  font-weight: 600;
+}
+
+#JellyVotePage .jv-tab-content {
+  display: none;
+  animation: jvFade 0.22s ease;
+}
+
+#JellyVotePage .jv-tab-content.active {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+@keyframes jvFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+#JellyVotePage fieldset {
+  border: 1px solid var(--jv-border);
+  border-radius: 12px;
+  background: var(--jv-card);
+  margin: 0;
+  padding: 1rem 1.1rem 1.15rem;
+  min-width: 0;
+}
+
+#JellyVotePage fieldset.jv-wide {
+  grid-column: 1 / -1;
+}
+
+#JellyVotePage legend {
+  padding: 0.2rem 0.65rem;
+  border-radius: 8px;
+  background: var(--jv-legend);
+  color: var(--jv-text-strong);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+#JellyVotePage .jv-desc {
+  color: var(--jv-text-subtle);
+  font-size: 0.82rem;
+  margin: 0.15rem 0 0.75rem;
+  line-height: 1.4;
+}
+
+#JellyVotePage .inputContainer,
+#JellyVotePage .checkboxContainer {
+  margin: 0.65rem 0;
+}
+
+#JellyVotePage textarea {
+  width: 100%;
+  min-height: 140px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+#JellyVotePage .jv-save-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  margin-top: 1.25rem;
+  border: 1px solid var(--jv-border-strong);
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in srgb, var(--background-color, #101010) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+#JellyVotePage .jv-save-dock.jv-dirty {
+  border-color: color-mix(in srgb, var(--jv-accent) 50%, transparent);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+}
+
+#JellyVotePage .jv-dirty-badge {
+  display: none;
+  font-size: 0.8rem;
+  color: var(--jv-accent);
+  font-weight: 600;
+}
+
+#JellyVotePage .jv-save-dock.jv-dirty .jv-dirty-badge {
+  display: inline;
+}
+
+#JellyVotePage .jv-banner {
+  grid-column: 1 / -1;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #e2a039 45%, transparent);
+  background: color-mix(in srgb, #e2a039 12%, transparent);
+  color: var(--jv-text-strong);
+  font-size: 0.9rem;
+}
+
+#JellyVotePage .jv-vote-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#JellyVotePage .jv-vote-card {
+  border: 1px solid var(--jv-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: var(--jv-surface-1);
+}
+
+#JellyVotePage .jv-vote-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+#JellyVotePage .jv-meta {
+  color: var(--jv-text-muted);
+  font-size: 0.82rem;
+  margin-bottom: 0.55rem;
+}
+
+#JellyVotePage .jv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+#JellyVotePage .jv-pill {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--jv-accent-tint);
+  border: 1px solid color-mix(in srgb, var(--jv-accent) 35%, transparent);
+  margin-right: 0.35rem;
+}
+
+#JellyVotePage .jv-empty {
+  color: var(--jv-text-subtle);
+  font-style: italic;
+}

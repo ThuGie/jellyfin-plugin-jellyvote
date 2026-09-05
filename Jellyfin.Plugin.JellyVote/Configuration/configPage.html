@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JellyVote</title>
+</head>
+<body>
+<div id="JellyVotePage" data-role="page" class="page type-interior pluginConfigurationPage jellyVoteConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
+    <div data-role="content" class="content-primary">
+        <div class="jv-sticky-header">
+            <div class="jv-title-row">
+                <h1>JellyVote</h1>
+                <span class="jv-subtitle">Community voting to remove media from your library</span>
+            </div>
+            <div class="jv-tab-bar" role="tablist">
+                <button type="button" class="jv-tab-button active" data-tab="general">General</button>
+                <button type="button" class="jv-tab-button" data-tab="voting">Voting rules</button>
+                <button type="button" class="jv-tab-button" data-tab="deletion">Deletion</button>
+                <button type="button" class="jv-tab-button" data-tab="reasons">Reasons</button>
+                <button type="button" class="jv-tab-button" data-tab="notifications">Notifications</button>
+                <button type="button" class="jv-tab-button" data-tab="permissions">Permissions</button>
+                <button type="button" class="jv-tab-button" data-tab="votes">Votes</button>
+                <button type="button" class="jv-tab-button" data-tab="about">About</button>
+            </div>
+        </div>
+
+        <form id="JellyVoteForm">
+            <div id="general" class="jv-tab-content active">
+                <fieldset>
+                    <legend class="sectionTitle">Enable</legend>
+                    <p class="jv-desc">Turn the plugin on or off without uninstalling.</p>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label><input is="emby-checkbox" type="checkbox" id="Enabled" /> Enable JellyVote</label>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend class="sectionTitle">Media types</legend>
+                    <p class="jv-desc">Which library items users can propose for deletion.</p>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AllowMovies" /> Movies</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AllowSeries" /> Series</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AllowSeasons" /> Seasons</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AllowEpisodes" /> Episodes</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AllowMusicAlbums" /> Music albums</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AllowMusicTracks" /> Music tracks</label></div>
+                </fieldset>
+                <fieldset>
+                    <legend class="sectionTitle">Who can act</legend>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AnyoneCanPropose" /> Anyone can propose</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AnyoneCanVote" /> Anyone can vote</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="RequireAdminToPropose" /> Require admin to propose</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="RequireNoteForOther" /> Require note for &quot;Other&quot;</label></div>
+                </fieldset>
+            </div>
+
+            <div id="voting" class="jv-tab-content">
+                <fieldset>
+                    <legend class="sectionTitle">Quorum</legend>
+                    <p class="jv-desc">Required Yes votes adapt to the active eligible pool: min(configured, eligible users).</p>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="MinimumYesVotes">Minimum Yes votes</label>
+                        <input is="emby-input" type="number" id="MinimumYesVotes" min="1" />
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="VotingWindowHours">Voting window (hours)</label>
+                        <input is="emby-input" type="number" id="VotingWindowHours" min="1" />
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="ActiveWithinDays">Active within (days)</label>
+                        <input is="emby-input" type="number" id="ActiveWithinDays" min="1" />
+                    </div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="IncludeInactiveInPool" /> Count inactive users in quorum pool</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="IncludeInactiveInNotify" /> Notify inactive users</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="EarlyResolveOnQuorum" /> Resolve early when quorum is met</label></div>
+                </fieldset>
+                <fieldset>
+                    <legend class="sectionTitle">End of window</legend>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="EnableUnanimousPassAtWindowEnd" /> Pass on unanimous Yes if participation threshold met</label></div>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="UnanimousPassMinParticipationPercent">Min participation %</label>
+                        <input is="emby-input" type="number" id="UnanimousPassMinParticipationPercent" min="1" max="100" />
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="CooldownHoursAfterReject">Cooldown after reject (hours)</label>
+                        <input is="emby-input" type="number" id="CooldownHoursAfterReject" min="0" />
+                    </div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="OneOpenVotePerItem" /> Only one open vote per item</label></div>
+                </fieldset>
+            </div>
+
+            <div id="deletion" class="jv-tab-content">
+                <div class="jv-banner">Disk deletion is irreversible. Default is library-only removal. Enable disk delete only if you understand the risk.</div>
+                <fieldset>
+                    <legend class="sectionTitle">On pass</legend>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="DeleteFilesFromDisk" /> Delete files from disk (otherwise remove from library only)</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="RequireAdminApprovalForDiskDelete" /> Require admin approval before disk deletes</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="DryRunMode" /> Dry-run / log-only (never delete)</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="BlockDeleteWhilePlaying" /> Block delete while item is playing</label></div>
+                </fieldset>
+            </div>
+
+            <div id="reasons" class="jv-tab-content">
+                <fieldset class="jv-wide">
+                    <legend class="sectionTitle">Delete reasons</legend>
+                    <p class="jv-desc">One reason per line. Include a line named Other if you want free-text notes.</p>
+                    <div class="inputContainer">
+                        <textarea id="DeleteReasons" class="textarea-mono" rows="10"></textarea>
+                    </div>
+                </fieldset>
+                <fieldset class="jv-wide">
+                    <legend class="sectionTitle">Keep reasons (vote No)</legend>
+                    <p class="jv-desc">Shown when a user votes against deletion.</p>
+                    <div class="inputContainer">
+                        <textarea id="KeepReasons" class="textarea-mono" rows="10"></textarea>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div id="notifications" class="jv-tab-content">
+                <fieldset>
+                    <legend class="sectionTitle">Events</legend>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="NotifyOnPropose" /> Notify on propose</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="NotifyOnEachVote" /> Notify on each ballot</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="NotifyOnResolve" /> Notify on resolve</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AlwaysNotifyAdmins" /> Always notify admins</label></div>
+                </fieldset>
+            </div>
+
+            <div id="permissions" class="jv-tab-content">
+                <fieldset>
+                    <legend class="sectionTitle">Admin overrides</legend>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AdminsCanForcePass" /> Admins can force-pass</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AdminsCanForceReject" /> Admins can force-reject</label></div>
+                    <div class="checkboxContainer"><label><input is="emby-checkbox" type="checkbox" id="AdminsCanCancel" /> Admins can cancel</label></div>
+                </fieldset>
+                <fieldset class="jv-wide">
+                    <legend class="sectionTitle">Excluded users</legend>
+                    <p class="jv-desc">Comma or newline separated user GUIDs who cannot propose or vote.</p>
+                    <div class="inputContainer">
+                        <textarea id="ExcludedUserIds" rows="4"></textarea>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div id="votes" class="jv-tab-content">
+                <fieldset class="jv-wide">
+                    <legend class="sectionTitle">Open &amp; recent votes</legend>
+                    <p class="jv-desc">Refresh after changing filters. Admin actions apply immediately.</p>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="VoteStatusFilter">Status filter</label>
+                        <select is="emby-select" id="VoteStatusFilter">
+                            <option value="">All</option>
+                            <option value="Open">Open</option>
+                            <option value="Passed">Passed</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="PendingAdmin">Pending admin</option>
+                            <option value="PendingDiskApproval">Pending disk approval</option>
+                        </select>
+                    </div>
+                    <button is="emby-button" type="button" class="raised button-submit" id="RefreshVotesBtn">Refresh</button>
+                    <div id="VoteList" class="jv-vote-list" style="margin-top:1rem;"></div>
+                </fieldset>
+            </div>
+
+            <div id="about" class="jv-tab-content">
+                <fieldset class="jv-wide">
+                    <legend class="sectionTitle">About JellyVote</legend>
+                    <p class="jv-desc">
+                        JellyVote lets your household vote before media is removed. Quorum adapts to active users.
+                        Client UI is injected into jellyfin-web; native TV apps are not supported in v1.
+                    </p>
+                    <p><strong>Plugin ID:</strong> <code>d2cffc5c-a675-431a-add8-abb93d6aaf1f</code></p>
+                    <p><strong>Install:</strong> Dashboard → Plugins → Repositories → add the raw <code>manifest.json</code> URL from the GitHub repo.</p>
+                    <p class="jv-desc">Safety defaults: library-only deletion, admin approval for disk deletes, block while playing, audit log in the plugin data folder.</p>
+                </fieldset>
+            </div>
+
+            <div class="jv-save-dock" id="SaveDock">
+                <div>
+                    <span class="jv-dirty-badge">Unsaved changes</span>
+                </div>
+                <button is="emby-button" type="submit" class="raised button-submit block">
+                    <span>Save</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    var pluginId = 'd2cffc5c-a675-431a-add8-abb93d6aaf1f';
+    var page = document.getElementById('JellyVotePage');
+    var form = document.getElementById('JellyVoteForm');
+    var saveDock = document.getElementById('SaveDock');
+    var snapshot = '';
+
+    var boolIds = [
+        'Enabled', 'AllowMovies', 'AllowSeries', 'AllowSeasons', 'AllowEpisodes',
+        'AllowMusicAlbums', 'AllowMusicTracks', 'AnyoneCanPropose', 'AnyoneCanVote',
+        'RequireAdminToPropose', 'RequireNoteForOther', 'IncludeInactiveInPool',
+        'IncludeInactiveInNotify', 'EarlyResolveOnQuorum', 'EnableUnanimousPassAtWindowEnd',
+        'OneOpenVotePerItem', 'DeleteFilesFromDisk', 'RequireAdminApprovalForDiskDelete',
+        'DryRunMode', 'BlockDeleteWhilePlaying', 'NotifyOnPropose', 'NotifyOnEachVote',
+        'NotifyOnResolve', 'AlwaysNotifyAdmins', 'AdminsCanForcePass', 'AdminsCanForceReject',
+        'AdminsCanCancel'
+    ];
+    var numIds = [
+        'MinimumYesVotes', 'VotingWindowHours', 'ActiveWithinDays',
+        'UnanimousPassMinParticipationPercent', 'CooldownHoursAfterReject'
+    ];
+    var textIds = ['DeleteReasons', 'KeepReasons', 'ExcludedUserIds'];
+
+    function loadCss() {
+        var href = ApiClient.getUrl('JellyVote/Configuration/configPage.css') + '?v=' + Date.now();
+        if (document.querySelector('link[data-jellyvote-css]')) return;
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.setAttribute('data-jellyvote-css', '1');
+        document.head.appendChild(link);
+    }
+
+    function detectTheme() {
+        try {
+            var bg = getComputedStyle(document.documentElement).backgroundColor || '';
+            var m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+            if (!m) return;
+            var lum = (0.2126 * m[1] + 0.7152 * m[2] + 0.0722 * m[3]) / 255;
+            page.classList.toggle('jv-light-theme', lum > 0.6);
+            page.classList.toggle('jv-dark-theme', lum <= 0.6);
+        } catch (e) { /* ignore */ }
+    }
+
+    function activateTab(tabId) {
+        page.querySelectorAll('.jv-tab-button').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+        });
+        page.querySelectorAll('.jv-tab-content').forEach(function (panel) {
+            panel.classList.toggle('active', panel.id === tabId);
+        });
+        try { sessionStorage.setItem('jellyVoteActiveTab', tabId); } catch (e) { /* ignore */ }
+        if (tabId === 'votes') refreshVotes();
+    }
+
+    function formSnapshot() {
+        var data = {};
+        boolIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) data[id] = !!el.checked;
+        });
+        numIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) data[id] = el.value;
+        });
+        textIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) data[id] = el.value;
+        });
+        return JSON.stringify(data);
+    }
+
+    function markDirty() {
+        var dirty = formSnapshot() !== snapshot;
+        saveDock.classList.toggle('jv-dirty', dirty);
+    }
+
+    function applyConfig(config) {
+        boolIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && Object.prototype.hasOwnProperty.call(config, id)) el.checked = !!config[id];
+        });
+        numIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && Object.prototype.hasOwnProperty.call(config, id)) el.value = config[id];
+        });
+        textIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && Object.prototype.hasOwnProperty.call(config, id)) el.value = config[id] || '';
+        });
+        snapshot = formSnapshot();
+        markDirty();
+    }
+
+    function buildConfigFromForm(config) {
+        boolIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) config[id] = !!el.checked;
+        });
+        numIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) config[id] = parseInt(el.value, 10) || 0;
+        });
+        textIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) config[id] = el.value;
+        });
+        return config;
+    }
+
+    function loadConfig() {
+        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+            applyConfig(config);
+        });
+    }
+
+    function refreshVotes() {
+        var list = document.getElementById('VoteList');
+        var filter = document.getElementById('VoteStatusFilter').value;
+        var url = ApiClient.getUrl('JellyVote/votes');
+        if (filter) url += '?status=' + encodeURIComponent(filter);
+        list.innerHTML = '<p class="jv-empty">Loading…</p>';
+        ApiClient.ajax({ type: 'GET', url: url, dataType: 'json' }).then(function (votes) {
+            if (!votes || !votes.length) {
+                list.innerHTML = '<p class="jv-empty">No votes yet.</p>';
+                return;
+            }
+            list.innerHTML = '';
+            votes.forEach(function (v) {
+                var card = document.createElement('div');
+                card.className = 'jv-vote-card';
+                card.innerHTML =
+                    '<h3>' + escapeHtml(v.itemName) + '</h3>' +
+                    '<div class="jv-meta">' +
+                    '<span class="jv-pill">' + escapeHtml(v.status) + '</span>' +
+                    'Yes ' + v.yesVotes + ' / No ' + v.noVotes +
+                    ' · need ' + v.requiredYesVotes +
+                    ' · by ' + escapeHtml(v.proposerName) +
+                    ' · ' + escapeHtml(v.deleteReason) +
+                    '</div>' +
+                    '<div class="jv-actions"></div>';
+                var actions = card.querySelector('.jv-actions');
+                [
+                    { a: 'pass', label: 'Force pass' },
+                    { a: 'reject', label: 'Force reject' },
+                    { a: 'cancel', label: 'Cancel' },
+                    { a: 'approve-disk', label: 'Approve disk delete' }
+                ].forEach(function (btn) {
+                    var b = document.createElement('button');
+                    b.setAttribute('is', 'emby-button');
+                    b.className = 'raised';
+                    b.type = 'button';
+                    b.textContent = btn.label;
+                    b.addEventListener('click', function () {
+                        adminAction(v.id, btn.a);
+                    });
+                    actions.appendChild(b);
+                });
+                list.appendChild(card);
+            });
+        }).catch(function () {
+            list.innerHTML = '<p class="jv-empty">Failed to load votes.</p>';
+        });
+    }
+
+    function adminAction(voteId, action) {
+        var url = ApiClient.getUrl('JellyVote/votes/' + voteId + '/admin');
+        ApiClient.ajax({
+            type: 'POST',
+            url: url,
+            data: JSON.stringify({ action: action, approveDiskDelete: action === 'approve-disk', note: 'Admin UI' }),
+            contentType: 'application/json',
+            dataType: 'json'
+        }).then(function (res) {
+            Dashboard.alert(res.message || 'Done');
+            refreshVotes();
+        }).catch(function (err) {
+            Dashboard.alert((err && err.message) || 'Action failed');
+        });
+    }
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    page.querySelectorAll('.jv-tab-button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            activateTab(btn.getAttribute('data-tab'));
+        });
+    });
+
+    form.addEventListener('input', markDirty);
+    form.addEventListener('change', markDirty);
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+            buildConfigFromForm(config);
+            return ApiClient.updatePluginConfiguration(pluginId, config);
+        }).then(function (result) {
+            Dashboard.processPluginConfigurationUpdateResult(result);
+            snapshot = formSnapshot();
+            markDirty();
+        });
+    });
+
+    document.getElementById('RefreshVotesBtn').addEventListener('click', refreshVotes);
+    document.getElementById('VoteStatusFilter').addEventListener('change', refreshVotes);
+
+    page.addEventListener('pageshow', function () {
+        loadCss();
+        detectTheme();
+        loadConfig();
+        var tab = 'general';
+        try { tab = sessionStorage.getItem('jellyVoteActiveTab') || 'general'; } catch (e) { /* ignore */ }
+        activateTab(tab);
+    });
+
+    loadCss();
+    detectTheme();
+    loadConfig();
+})();
+</script>
+</body>
+</html>

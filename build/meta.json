@@ -1,0 +1,12 @@
+{
+  "category": "General",
+  "changelog": "- Initial release: deletion voting with adaptive quorum, Enhanced-style settings, web client UI",
+  "description": "Community voting to delete movies, series, and music from your Jellyfin library.",
+  "guid": "d2cffc5c-a675-431a-add8-abb93d6aaf1f",
+  "name": "JellyVote",
+  "overview": "Vote before media is removed — adaptive quorum, preset reasons, and safe deletion defaults.",
+  "owner": "ThuGie",
+  "targetAbi": "10.11.0.0",
+  "timestamp": "2026-09-05T15:00:00Z",
+  "version": "1.0.0.0"
+}
