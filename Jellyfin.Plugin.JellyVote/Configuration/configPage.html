@@ -265,18 +265,36 @@
         saveDock.classList.toggle('jv-dirty', dirty);
     }
 
+    function cfgKey(config, id) {
+        if (Object.prototype.hasOwnProperty.call(config, id)) return id;
+        var camel = id.charAt(0).toLowerCase() + id.slice(1);
+        if (Object.prototype.hasOwnProperty.call(config, camel)) return camel;
+        return id;
+    }
+
+    function cfgGet(config, id) {
+        return config[cfgKey(config, id)];
+    }
+
+    function cfgSet(config, id, value) {
+        config[cfgKey(config, id)] = value;
+    }
+
     function applyConfig(config) {
         boolIds.forEach(function (id) {
             var el = document.getElementById(id);
-            if (el && Object.prototype.hasOwnProperty.call(config, id)) el.checked = !!config[id];
+            var val = cfgGet(config, id);
+            if (el && val !== undefined) el.checked = !!val;
         });
         numIds.forEach(function (id) {
             var el = document.getElementById(id);
-            if (el && Object.prototype.hasOwnProperty.call(config, id)) el.value = config[id];
+            var val = cfgGet(config, id);
+            if (el && val !== undefined) el.value = val;
         });
         textIds.forEach(function (id) {
             var el = document.getElementById(id);
-            if (el && Object.prototype.hasOwnProperty.call(config, id)) el.value = config[id] || '';
+            var val = cfgGet(config, id);
+            if (el && val !== undefined) el.value = val || '';
         });
         snapshot = formSnapshot();
         markDirty();
@@ -285,15 +303,15 @@
     function buildConfigFromForm(config) {
         boolIds.forEach(function (id) {
             var el = document.getElementById(id);
-            if (el) config[id] = !!el.checked;
+            if (el) cfgSet(config, id, !!el.checked);
         });
         numIds.forEach(function (id) {
             var el = document.getElementById(id);
-            if (el) config[id] = parseInt(el.value, 10) || 0;
+            if (el) cfgSet(config, id, parseInt(el.value, 10) || 0);
         });
         textIds.forEach(function (id) {
             var el = document.getElementById(id);
-            if (el) config[id] = el.value;
+            if (el) cfgSet(config, id, el.value);
         });
         return config;
     }
