@@ -7,19 +7,33 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to package (e.g. 1.0.1.0). Ignored on tag pushes."
-        required: false
-        default: "0.0.0.0"
+        description: "Version to package when run manually (e.g. 1.0.1.0). Ignored on tag pushes."
+        required: true
+        default: "1.0.1.0"
+      create_release:
+        description: "Create/update GitHub release and refresh manifest.json"
+        type: boolean
+        required: true
+        default: true
 
+# Required: repo default was read-only; this requests write for releases + manifest push.
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout tag/ref
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Explicit token so later git push to main works.
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -32,73 +46,137 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
+            PUBLISH=true
           else
             VERSION="${{ inputs.version }}"
+            PUBLISH="${{ inputs.create_release }}"
           fi
-          if [[ -z "$VERSION" || "$VERSION" == "0.0.0.0" ]]; then
-            VERSION="1.0.0.0"
+          if [[ -z "$VERSION" ]]; then
+            echo "Version is required" >&2
+            exit 1
           fi
+          # Normalize to 4-part assembly style if needed (1.0.1 -> 1.0.1.0)
+          IFS='.' read -r -a PARTS <<< "$VERSION"
+          while [[ ${#PARTS[@]} -lt 4 ]]; do PARTS+=("0"); done
+          VERSION="${PARTS[0]}.${PARTS[1]}.${PARTS[2]}.${PARTS[3]}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
           echo "PLUGIN_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Resolved version=$VERSION publish=$PUBLISH"
 
       - name: Build
-        run: dotnet build Jellyfin.Plugin.JellyVote/Jellyfin.Plugin.JellyVote.csproj -c Release
+        run: dotnet build Jellyfin.Plugin.JellyVote/Jellyfin.Plugin.JellyVote.csproj -c Release -p:AssemblyVersion=${{ steps.ver.outputs.version }} -p:FileVersion=${{ steps.ver.outputs.version }}
 
       - name: Package
+        id: package
         shell: pwsh
         run: |
           $version = $env:PLUGIN_VERSION
-          New-Item -ItemType Directory -Force -Path dist/JellyVote | Out-Null
-          Copy-Item Jellyfin.Plugin.JellyVote/bin/Release/net9.0/Jellyfin.Plugin.JellyVote.dll dist/JellyVote/
-          if (Test-Path build/thumb.png) {
-            Copy-Item build/thumb.png dist/JellyVote/thumb.png -Force
+          $outDir = "dist/JellyVote"
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+          Copy-Item "Jellyfin.Plugin.JellyVote/bin/Release/net9.0/Jellyfin.Plugin.JellyVote.dll" "$outDir/" -Force
+          if (Test-Path "build/thumb.png") {
+            Copy-Item "build/thumb.png" "$outDir/thumb.png" -Force
           }
-          $meta = Get-Content build/meta.json -Raw | ConvertFrom-Json
+          $meta = Get-Content "build/meta.json" -Raw | ConvertFrom-Json
           $meta.version = $version
           $meta.timestamp = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
           $meta.imagePath = "thumb.png"
           $metaJson = $meta | ConvertTo-Json -Depth 5
-          [System.IO.File]::WriteAllText("$pwd/dist/JellyVote/meta.json", $metaJson + "`n", [System.Text.UTF8Encoding]::new($false))
-          Compress-Archive -Path dist/JellyVote/* -DestinationPath "dist/Jellyfin.Plugin.JellyVote_$version.zip" -Force
-          $hash = (Get-FileHash "dist/Jellyfin.Plugin.JellyVote_$version.zip" -Algorithm MD5).Hash.ToUpperInvariant()
-          echo "PLUGIN_CHECKSUM=$hash" >> $env:GITHUB_ENV
-          echo "checksum=$hash" >> $env:GITHUB_OUTPUT
+          [System.IO.File]::WriteAllText("$pwd/$outDir/meta.json", $metaJson + "`n", [System.Text.UTF8Encoding]::new($false))
+
+          $zipName = "Jellyfin.Plugin.JellyVote_$version.zip"
+          $zipPath = "dist/$zipName"
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          Compress-Archive -Path "$outDir/*" -DestinationPath $zipPath -Force
+
+          $hash = (Get-FileHash $zipPath -Algorithm MD5).Hash.ToUpperInvariant()
+          "PLUGIN_CHECKSUM=$hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "checksum=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "zip=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Built $zipPath"
           Write-Host "MD5 $hash"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jellyvote-plugin
+          name: jellyvote-plugin-${{ steps.ver.outputs.version }}
           path: dist/*.zip
+          if-no-files-found: error
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.zip
-          generate_release_notes: true
+      - name: Create or update GitHub Release
+        if: steps.ver.outputs.publish == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          ZIP: ${{ steps.package.outputs.zip }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+          TITLE="JellyVote ${VERSION}"
+          NOTES="## JellyVote ${VERSION}
+
+          Automated build from \`${GITHUB_SHA::7}\`.
+
+          ### Install
+          Dashboard → Plugins → Repositories → add:
+          \`https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/manifest.json\`
+          "
+
+          # Ensure the tag exists remotely (manual workflow_dispatch may not have one).
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag "$TAG" "$GITHUB_SHA"
+          fi
+          git push origin "$TAG" 2>/dev/null || true
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Updating existing release $TAG"
+            gh release upload "$TAG" "$ZIP" --clobber
+            gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
+          else
+            echo "Creating release $TAG"
+            gh release create "$TAG" "$ZIP" --title "$TITLE" --notes "$NOTES"
+          fi
+
+          echo "Release URL: $(gh release view "$TAG" --json url -q .url)"
 
       - name: Update manifest.json on main
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: pwsh
+        if: steps.ver.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          CHECKSUM: ${{ steps.package.outputs.checksum }}
+        shell: bash
         run: |
-          $version = $env:PLUGIN_VERSION
-          $hash = $env:PLUGIN_CHECKSUM
-          git fetch origin main
-          git checkout -B main origin/main
-          ./scripts/update-manifest.ps1 `
-            -Version $version `
-            -Checksum $hash `
-            -Repository $env:GITHUB_REPOSITORY `
-            -Changelog "Release $version - see https://github.com/$($env:GITHUB_REPOSITORY)/releases/tag/v$version"
+          set -euo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main
+          git checkout -B main origin/main
+
+          pwsh -File ./scripts/update-manifest.ps1 \
+            -Version "$VERSION" \
+            -Checksum "$CHECKSUM" \
+            -Repository "$GITHUB_REPOSITORY" \
+            -Changelog "Release $VERSION - see https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${VERSION}"
+
           git add manifest.json
-          if (git diff --staged --quiet) {
-            Write-Host "manifest.json already up to date"
-          } else {
-            git commit -m "chore: update manifest checksum for v$version"
-            git push origin main
-          }
+          if git diff --staged --quiet; then
+            echo "manifest.json already up to date"
+          else
+            git commit -m "chore: update manifest for v${VERSION}"
+            # Retry push in case another commit landed on main.
+            for i in 1 2 3; do
+              if git push origin main; then
+                echo "Pushed manifest update"
+                exit 0
+              fi
+              echo "Push failed (attempt $i), rebasing..."
+              git pull --rebase origin main
+            done
+            echo "Failed to push manifest update" >&2
+            exit 1
+          fi

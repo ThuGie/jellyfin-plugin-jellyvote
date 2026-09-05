@@ -54,10 +54,19 @@ On every **version tag** push (`v*`), GitHub Actions:
 
 1. Builds the plugin zip (DLL + `meta.json` + `thumb.png`)
 2. Computes the **MD5** checksum
-3. Creates the GitHub Release with the zip
+3. Creates/updates the GitHub Release with the zip (`gh release`)
 4. Checks out `main` and runs `scripts/update-manifest.ps1` to prepend the new version entry (with correct `checksum` + `sourceUrl`) and push
 
 You do **not** need to hand-edit the hash for tagged releases.
+
+Example:
+
+```bash
+git tag v1.0.1.0
+git push origin v1.0.1.0
+```
+
+You can also run **Actions → Build plugin → Run workflow** and supply a version.
 
 ## Icon
 
