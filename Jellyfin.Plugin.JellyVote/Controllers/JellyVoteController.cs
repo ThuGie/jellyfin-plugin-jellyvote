@@ -63,9 +63,10 @@ namespace Jellyfin.Plugin.JellyVote.Controllers
 
         [HttpGet("Configuration/configPage.css")]
         [HttpGet("Configuration/css")]
-        [AllowAnonymous]
         public ActionResult GetCss()
         {
+            // Match Jellyfin Enhanced: stream embedded CSS as text/css with FileStreamResult.
+            // No [Authorize] so <link rel="stylesheet"> works (browsers do not send X-Emby-Token).
             var asm = Assembly.GetExecutingAssembly();
             var name = asm.GetManifestResourceNames()
                 .FirstOrDefault(n => n.EndsWith("configPage.css", StringComparison.OrdinalIgnoreCase));
@@ -74,14 +75,14 @@ namespace Jellyfin.Plugin.JellyVote.Controllers
                 return NotFound();
             }
 
-            using var stream = asm.GetManifestResourceStream(name);
+            var stream = asm.GetManifestResourceStream(name);
             if (stream == null)
             {
                 return NotFound();
             }
 
-            using var reader = new StreamReader(stream);
-            return Content(reader.ReadToEnd(), "text/css; charset=utf-8");
+            Response.Headers["Cache-Control"] = "no-store";
+            return new FileStreamResult(stream, "text/css");
         }
 
         [HttpGet("public-config")]
