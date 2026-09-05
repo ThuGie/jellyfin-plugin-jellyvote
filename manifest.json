@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/ThuGie/jellyfin-plugin-jellyvote/main/docs/images/icon.png",
     "versions": [
       {
+        "version": "1.0.2.0",
+        "changelog": "Release 1.0.2.0 - see https://github.com/ThuGie/jellyfin-plugin-jellyvote/releases/tag/v1.0.2.0",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/ThuGie/jellyfin-plugin-jellyvote/releases/download/v1.0.2.0/Jellyfin.Plugin.JellyVote_1.0.2.0.zip",
+        "checksum": "A0C4EE52A82593D017DD3DB13819087D",
+        "timestamp": "2026-09-05T15:43:22Z"
+      },
+      {
         "version": "1.0.1.0",
         "changelog": "Release 1.0.1.0 - see https://github.com/ThuGie/jellyfin-plugin-jellyvote/releases/tag/v1.0.1.0",
         "targetAbi": "10.11.0.0",
