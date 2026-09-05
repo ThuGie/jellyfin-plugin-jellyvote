@@ -29,6 +29,11 @@ if ([string]::IsNullOrWhiteSpace($Changelog)) {
 }
 
 $raw = [System.IO.File]::ReadAllText($ManifestPath)
+# Keep timestamps as strings (ConvertFrom-Json otherwise turns ISO dates into DateTime).
+$raw = [regex]::Replace($raw, '"timestamp"\s*:\s*"([^"]+)"', {
+  param($m)
+  '"timestamp": "' + $m.Groups[1].Value + '"'
+})
 $manifest = $raw | ConvertFrom-Json
 if ($manifest -isnot [System.Array]) {
   $manifest = @($manifest)
@@ -40,14 +45,20 @@ $pkg.imageUrl = "https://raw.githubusercontent.com/$Repository/main/docs/images/
 $existing = @()
 if ($pkg.versions) {
   foreach ($v in @($pkg.versions)) {
-    if ($v.version -eq $Version) { continue }
+    if ([string]$v.version -eq $Version) { continue }
+    $ts = $v.timestamp
+    if ($ts -is [datetime]) {
+      $ts = ([datetime]$ts).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    } else {
+      $ts = [string]$ts
+    }
     $existing += [ordered]@{
       version = [string]$v.version
       changelog = [string]$v.changelog
       targetAbi = [string]$v.targetAbi
       sourceUrl = [string]$v.sourceUrl
       checksum = [string]$v.checksum
-      timestamp = [string]$v.timestamp
+      timestamp = $ts
     }
   }
 }
