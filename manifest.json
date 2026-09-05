@@ -3,18 +3,18 @@
     "guid": "d2cffc5c-a675-431a-add8-abb93d6aaf1f",
     "name": "JellyVote",
     "description": "Community voting to delete movies, series, and music from your Jellyfin library.",
-    "overview": "Vote before media is removed — adaptive quorum, preset reasons, and safe deletion defaults.",
+    "overview": "Vote before media is removed - adaptive quorum, preset reasons, and safe deletion defaults.",
     "owner": "ThuGie",
     "category": "General",
-    "imageUrl": "",
+    "imageUrl": "https://raw.githubusercontent.com/ThuGie/jellyfin-plugin-jellyvote/main/docs/images/icon.png",
     "versions": [
       {
         "version": "1.0.0.0",
-        "changelog": "- Initial release: deletion voting with adaptive quorum\n- Enhanced-style multi-tab settings\n- Web client propose/vote UI and inbox\n- Library-only or disk delete (setting)\n- Notifications, audit log, dry-run mode",
+        "changelog": "- Initial release: deletion voting with adaptive quorum\n- Enhanced-style multi-tab settings\n- Web client propose/vote UI and inbox\n- Library-only or disk delete (setting)\n- Notifications, audit log, dry-run mode\n- Plugin catalog icon",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/ThuGie/jellyfin-plugin-jellyvote/releases/download/v1.0.0.0/Jellyfin.Plugin.JellyVote_1.0.0.0.zip",
-        "checksum": "B9FC4A837992FF69EB4553B7D53A3AE9",
-        "timestamp": "2026-09-05T15:10:00Z"
+        "checksum": "A6B3C60D39BBED4E974D53E98CDA9A43",
+        "timestamp": "2026-09-05T15:22:11Z"
       }
     ]
   }

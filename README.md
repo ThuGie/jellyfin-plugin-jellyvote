@@ -44,8 +44,25 @@ dotnet build Jellyfin.Plugin.JellyVote/Jellyfin.Plugin.JellyVote.csproj -c Relea
 Packaging helper (PowerShell):
 
 ```powershell
-./build.ps1
+./build.ps1                  # build zip + print MD5
+./build.ps1 -UpdateManifest  # also write checksum into manifest.json
 ```
+
+### Manifest checksums
+
+On every **version tag** push (`v*`), GitHub Actions:
+
+1. Builds the plugin zip (DLL + `meta.json` + `thumb.png`)
+2. Computes the **MD5** checksum
+3. Creates the GitHub Release with the zip
+4. Checks out `main` and runs `scripts/update-manifest.ps1` to prepend the new version entry (with correct `checksum` + `sourceUrl`) and push
+
+You do **not** need to hand-edit the hash for tagged releases.
+
+## Icon
+
+- Catalog: [`docs/images/icon.png`](docs/images/icon.png) (512×512) via `imageUrl` in `manifest.json`
+- Installed plugin: `thumb.png` (256×256) inside the zip (`imagePath` in `meta.json`)
 
 ## Safety defaults
 
