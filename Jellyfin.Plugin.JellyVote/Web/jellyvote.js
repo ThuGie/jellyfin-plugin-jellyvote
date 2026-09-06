@@ -41,10 +41,16 @@
     var style = document.createElement('style')
     style.id = 'jellyvote-client-css'
     style.textContent = [
-      '.jv-fab-inbox{position:fixed;right:18px;bottom:18px;z-index:9998;border:0;border-radius:999px;',
-      'background:var(--primary-accent-color,#00a4dc);color:#fff;padding:10px 14px;cursor:pointer;',
-      'box-shadow:0 6px 18px rgba(0,0,0,.35);font-weight:600}',
-      '.jv-fab-inbox .jv-badge{margin-left:6px;background:#111;border-radius:999px;padding:1px 7px;font-size:12px}',
+      '#jellyvote-header-btn{position:relative}',
+      '#jellyvote-header-btn .jv-badge{position:absolute;top:4px;right:2px;min-width:16px;height:16px;',
+      'padding:0 4px;border-radius:999px;background:var(--primary-accent-color,#00a4dc);color:#fff;',
+      'font-size:10px;font-weight:700;line-height:16px;text-align:center;box-sizing:border-box}',
+      '.MuiToolbar-root #jellyvote-header-btn.headerButton.paper-icon-button-light{',
+      'display:inline-flex!important;align-items:center!important;justify-content:center!important;',
+      'box-sizing:border-box!important;width:48px!important;height:48px!important;padding:0!important;',
+      'margin:0!important;font-size:16px!important}',
+      '.MuiToolbar-root #jellyvote-header-btn.headerButton.paper-icon-button-light>.material-icons{',
+      'font-size:24px!important}',
       '.jv-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;',
       'align-items:center;justify-content:center;padding:16px}',
       '.jv-modal{background:var(--dialog-background-color,#1c1c1c);color:inherit;border-radius:12px;',
@@ -334,9 +340,12 @@
     }, 50)
   }
 
-  function watchDetailButtons () {
+  function watchDom () {
     if (observer) observer.disconnect()
     observer = new MutationObserver(function () {
+      if (!document.getElementById('jellyvote-header-btn')) {
+        ensureInboxHeaderBtn()
+      }
       if (!isDetailsView()) return
       if (!document.getElementById('jellyvote-item-btn') && !document.getElementById('jellyvote-propose-btn')) {
         if (findDetailButtonContainer()) scheduleInject()
@@ -345,25 +354,76 @@
     observer.observe(document.body, { childList: true, subtree: true })
   }
 
-  function ensureInboxFab () {
-    if (document.getElementById('jellyvote-inbox-fab')) return
-    var fab = document.createElement('button')
-    fab.id = 'jellyvote-inbox-fab'
-    fab.className = 'jv-fab-inbox'
-    fab.type = 'button'
-    fab.innerHTML = 'Votes<span class="jv-badge" id="jellyvote-badge" style="display:none">0</span>'
-    fab.addEventListener('click', openInbox)
-    document.body.appendChild(fab)
+  function getHeaderRightContainer () {
+    var legacy = document.querySelector('.headerRight')
+    if (legacy && legacy.offsetParent !== null) return legacy
+
+    var userMenuButton = document.querySelector('[aria-controls="app-user-menu"]')
+    var toolbar = (userMenuButton && userMenuButton.closest('.MuiToolbar-root')) ||
+      document.querySelector('.MuiAppBar-root .MuiToolbar-root')
+    if (!toolbar) return null
+
+    var userMenuBox = userMenuButton
+    while (userMenuBox && userMenuBox.parentElement !== toolbar) {
+      userMenuBox = userMenuBox.parentElement
+    }
+    if (userMenuBox && userMenuBox.previousElementSibling) {
+      return userMenuBox.previousElementSibling
+    }
+
+    var container = toolbar.querySelector(':scope > .headerRight')
+    if (!container) {
+      container = document.createElement('div')
+      container.className = 'headerRight'
+      toolbar.appendChild(container)
+    }
+    return container
+  }
+
+  function removeInboxFab () {
+    var fab = document.getElementById('jellyvote-inbox-fab')
+    if (fab) fab.remove()
+  }
+
+  function ensureInboxHeaderBtn (attempts) {
+    removeInboxFab()
+    if (document.getElementById('jellyvote-header-btn')) return true
+
+    attempts = attempts || 0
+    var headerRight = getHeaderRightContainer()
+    if (!headerRight) {
+      if (attempts < 20) {
+        setTimeout(function () { ensureInboxHeaderBtn(attempts + 1) }, 400)
+      }
+      return false
+    }
+
+    var btn = document.createElement('button')
+    btn.id = 'jellyvote-header-btn'
+    btn.type = 'button'
+    btn.setAttribute('is', 'paper-icon-button-light')
+    btn.className = 'headerButton headerButtonRight paper-icon-button-light'
+    btn.title = 'JellyVote'
+    btn.setAttribute('aria-label', 'JellyVote')
+    btn.innerHTML =
+      '<span class="material-icons" aria-hidden="true">how_to_vote</span>' +
+      '<span class="jv-badge" id="jellyvote-badge" style="display:none">0</span>'
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation()
+      openInbox()
+    })
+    headerRight.insertBefore(btn, headerRight.firstChild)
+    return true
   }
 
   function refreshInbox () {
     api('GET', 'alerts').then(function (data) {
-      ensureInboxFab()
+      ensureInboxHeaderBtn()
       var badge = document.getElementById('jellyvote-badge')
       if (!badge) return
       var unread = pick(data, 'unread', 'Unread') || 0
       if (unread > 0) {
-        badge.style.display = 'inline'
+        badge.style.display = 'inline-block'
         badge.textContent = String(unread)
       } else {
         badge.style.display = 'none'
@@ -437,10 +497,11 @@
       return
     }
     ensureStyles()
-    watchDetailButtons()
+    removeInboxFab()
+    watchDom()
     loadConfig().then(function () {
       if (!cfg || !(cfg.enabled || cfg.Enabled)) return
-      ensureInboxFab()
+      ensureInboxHeaderBtn()
       refreshInbox()
       scheduleInject()
       if (pollTimer) clearInterval(pollTimer)
