@@ -297,30 +297,42 @@
       var openVote = pick(state, 'openVote', 'OpenVote')
       var canVote = !!pick(state, 'canVote', 'CanVote')
       var hasVoted = !!pick(state, 'hasVoted', 'HasVoted')
+      var canPropose = !!pick(state, 'canPropose', 'CanPropose')
 
-      // Detail-bar vote button ONLY when a vote is active (never overlays the poster).
-      if (!openVote) return
-
-      var voteBtn = makeDetailButton(
-        'jellyvote-item-btn',
-        hasVoted ? 'how_to_vote' : 'ballot',
-        hasVoted ? 'Deletion vote in progress' : 'Vote on deletion'
-      )
-      if (!hasVoted && canVote) {
-        voteBtn.addEventListener('click', function () { showBallotModal(openVote) })
-      } else {
-        voteBtn.addEventListener('click', function () {
-          openModal(
-            'Deletion vote in progress',
-            voteMessageHtml(openVote) +
-              (hasVoted
-                ? '<p>You have already voted on this item.</p>'
-                : '<p>You are not eligible to vote on this item.</p>'),
-            [{ label: 'Close', primary: true }]
-          )
-        })
+      // Always use the item detail action bar (Play / Favorite / More) — never a floating overlay.
+      if (openVote) {
+        var voteBtn = makeDetailButton(
+          'jellyvote-item-btn',
+          hasVoted ? 'how_to_vote' : 'ballot',
+          hasVoted ? 'Deletion vote in progress' : 'Vote on deletion'
+        )
+        if (!hasVoted && canVote) {
+          voteBtn.addEventListener('click', function () { showBallotModal(openVote) })
+        } else {
+          voteBtn.addEventListener('click', function () {
+            openModal(
+              'Deletion vote in progress',
+              voteMessageHtml(openVote) +
+                (hasVoted
+                  ? '<p>You have already voted on this item.</p>'
+                  : '<p>You are not eligible to vote on this item.</p>'),
+              [{ label: 'Close', primary: true }]
+            )
+          })
+        }
+        placeDetailButton(container, voteBtn)
+        return
       }
-      placeDetailButton(container, voteBtn)
+
+      if (!canPropose) return
+
+      var proposeBtn = makeDetailButton(
+        'jellyvote-propose-btn',
+        'delete_forever',
+        'Propose deletion'
+      )
+      proposeBtn.addEventListener('click', function () { showProposeModal(itemId) })
+      placeDetailButton(container, proposeBtn)
     }).catch(function (e) { log('item state failed', e) })
   }
 
